@@ -6,8 +6,10 @@ import tomllib
 
 class LLMAccessor() :
 
-    def __init__( self, api_key : str ) :
-        self.api_key = api_key
+    def __init__( self ) :
+        with open('.secrets/apikeys.toml', 'rb') as f:
+            secrets = tomllib.load(f)
+        self.api_key = secrets['apikey']
 
         genai.configure(api_key=self.api_key)
         self._model = genai.GenerativeModel("models/gemini-1.5-pro-latest")
@@ -18,18 +20,18 @@ class LLMAccessor() :
 
 
     def generate( self, prompt ) -> str :
-        prompt = prompt[:self._size_window]
-        return self._model.generate_content( prompt )
+        prompt   = prompt[:self._size_window]
+        response = self._model.generate_content( prompt )
+        return response.text
 
 
 
 # TEST code  
 if( __name__ == '__main__')  :
 
-    with open('.secrets/apikeys.toml', 'rb') as f:
-        secrets = tomllib.load(f)
-    llm = LLMAccessor( secrets['apikey'])
+    print( 'Starting...' )
 
-    response = llm.generate('Tell me a story about a rabbit.')
+    llm = LLMAccessor( )
+    answer = llm.generate('Tell me a story about a rabbit.')
 
-    print( f"ANSWER: \n {response.text}" )
+    print( f"ANSWER: \n {answer}" )
