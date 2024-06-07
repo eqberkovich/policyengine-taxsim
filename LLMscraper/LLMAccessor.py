@@ -15,8 +15,8 @@ class LLMAccessor() :
         self._model = genai.GenerativeModel("models/gemini-1.5-pro-latest")
 
         # Max size of model attention window in bytes (should be in tokens, so assuming 5 byte words)
-        #   Note: Gemini Pro 1.5 is 1m tokens; 1.0 is 150k (?)
-        self._size_window = 500000 * 5    
+        #   Note: Gemini Pro 1.5 is 1m (?) tokens; 1.0 is 150k (?)
+        self._size_window = 20000 * 5    
 
 
     def generate( self, prompt ) -> str :
