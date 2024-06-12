@@ -159,3 +159,10 @@ if( __name__ == "__main__") :
   for state, link in data.items() :
     print( f"{state} URL: {link}")
   print()
+
+  from extract_from_url import get_text_from_url, extract_parameter, Parameter
+  text = get_text_from_url(table_data['Maximum Allotments and Deductions']['2023'])
+  d = 'The USDA deducts this amount from net income when computing SNAP benefits. Household size of 2'
+  p = Parameter(d)
+  x = extract_parameter(text, p)
+  print( f"{d}: {x}" )
