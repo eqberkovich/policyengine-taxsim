@@ -10,6 +10,17 @@ sources = {
 , "SNAP.STATE_WEBSITES"    : "https://www.fns.usda.gov/snap/state-directory"
 }
 
+regions = [ 
+  "48 States and District of Columbia"
+#, "Alaska (Urban)"
+#, "Alaska (Rural 1)"
+#, "Alaska (Rural 2)"
+, 'Alaska'
+, "Guam"
+, "Hawaii"
+, "Virgin Islands"
+]
+
 state_names = [
   "Alabama",
   "Alaska",
@@ -145,24 +156,18 @@ def extract_named_links(url : str, sources : list, ignorecase : bool = True ) ->
 
 if( __name__ == "__main__") :
   url = sources['SNAP.COLA']
-
   table_data = extract_data_sources(url)
 
-  for title, year_data in table_data.items():
-    print(f"Table Title: {title}")
-    for year, pdf_url in year_data.items():
-      print(f"\tYear: {year}, PDF URL: {pdf_url}")
-    print()
-
   url = sources["SNAP.STATE_WEBSITES"]
-  data = extract_named_links( url, state_names )
-  for state, link in data.items() :
-    print( f"{state} URL: {link}")
-  print()
+  #data = extract_named_links( url, state_names )
 
   from extract_from_url import get_text_from_url, extract_parameter, Parameter
-  text = get_text_from_url(table_data['Maximum Allotments and Deductions']['2023'])
-  d = 'The USDA deducts this amount from net income when computing SNAP benefits. Household size of 2'
-  p = Parameter(d)
-  x = extract_parameter(text, p)
-  print( f"{d}: {x}" )
+  url = table_data['Maximum Allotments and Deductions']['2023']
+  print( url )
+  text = get_text_from_url( url )
+  d = 'The USDA deducts this amount from net income when computing SNAP benefits; the standard deduction.'
+  p = Parameter(d, household_range=range(1,7), regions=regions)
+  extract_parameter(text, p)
+  for h in range(1,7):
+    for r in range(len(regions)) :
+      print( f"HH {h} in {regions[r]}: {p.values[(r,h)]}" )
