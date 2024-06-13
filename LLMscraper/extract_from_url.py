@@ -6,7 +6,7 @@ import requests
 from bs4 import BeautifulSoup 
 from PyPDF2 import PdfReader
 from io import BytesIO
-
+import pandas
 
 class Parameter() :
 
@@ -70,20 +70,48 @@ def get_text_from_url( url : str ) -> str :
     Returns:
         Plain text of the contents
     """
-    request = requests.get( url )
+    response = requests.get( url )
     # TBD -- Handle errors more gracefully
 
     text = ""
     if( ".pdf" in url.lower() ) :
-        with BytesIO(request.content) as pdf_data :
+        with BytesIO(response.content) as pdf_data :
             pdf_reader = PdfReader(pdf_data)
             for page in pdf_reader.pages:
                 text += page.extract_text()
+    elif( ".xls" in url.lower() ) :
+        df = pandas.read_excel( BytesIO(response.content) )
+        text = df.to_csv(index=False)
     else :
-        bs   = BeautifulSoup( request.content, features="html.parser" )
+        bs   = BeautifulSoup( response.content, features="html.parser" )
         text = bs.get_text()
 
     return text
+
+
+def extract_parameter_from_csv( csv_text : str, param : Parameter ) -> None :
+    """
+    Given CSV data, ask the LLM to format it for use in Dataframe.
+    Use Dataframe to find numerical values which correspond
+    to the description of the parameter. 
+    Parameters
+        csv_text : Text to parse for parameter value
+        param    : Parameter object with detailed description of the numerical values to find
+                   This object gets filled in with data
+    Returns:
+        None
+    """
+
+    # Clean up csv to help LLM
+    prompt  = f"Using the attached context, produce a CSV file which can be loaded into a pandas Dataframe. \n " \
+            + " Drop any heading rows and footer rows which do not match a Dataframe format. \n" \
+            + f" The context is: \n\n {csv_text}"
+    llm    = LLMAccessor()
+    answer = llm.generate( prompt )
+
+    extract_parameter(answer, param)
+    
+
 
 
 def extract_parameter( text : str, param : Parameter ) -> None  :
