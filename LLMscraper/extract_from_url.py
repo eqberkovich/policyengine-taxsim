@@ -44,7 +44,15 @@ class Parameter() :
         self.values = values
 
 
-    def set_value(self, value : float, household_size : int = None, region_num : int = None ):
+    def _to_key(self, household_size : int = None, region : int | str = None ) :
+        region_num = None
+        if( region != None ) :
+            if( isinstance(region, int) ) :
+                region_num = region
+            elif( isinstance(region, str) ) :
+                region_num = self.regions.index( region )
+            else :
+                raise( ValueError('Argument <region> must be int or str.'))
         if( self.has_HH and self.has_regions ) :
             key = (region_num, household_size)
         elif( self.has_HH ) :
@@ -53,11 +61,22 @@ class Parameter() :
             key = region_num
         else :
             key = None
-        
+        return key
+
+    def set_value(self, value : float, household_size : int = None, region : int | str = None ):
+        key = self._to_key( household_size, region)
         if( key in self.values.keys()) :
             self.values[key] = value
         else :
-            raise( KeyError(f"Cannot set the parameter value for {key}. Outside of allowed ranges."))
+            raise( KeyError(f"Cannot set the parameter value for key={key}. Outside of allowed ranges."))
+
+    def get_value(self, household_size : int = None, region : int | str = None ) -> float:
+        key = self._to_key( household_size, region)        
+        if( key in self.values.keys()) :
+            return self.values[key]
+        else :
+            raise( KeyError(f"Cannot find the parameter value for {key}. Outside of allowed ranges."))
+
 
 # end Parameter class
 
